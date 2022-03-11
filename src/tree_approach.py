@@ -1,16 +1,30 @@
+import json
 from typing import List
 
 from data_structures import TileResult, WordResult, LetterPossibility, ALPHABET, WORDLIST_PATH, TreeNode, \
     check_word_against_possibilities
+import data_structures
+from os.path import join as path_join, dirname as path_dirname
+WORD_NORMS_PATH = path_join(path_dirname(__file__), "../res/word_norms.json")
 
+
+
+WORD_NORMALCY = {}
+
+
+def load_word_norms():
+    global WORD_NORMALCY
+    with open(WORD_NORMS_PATH, "r", encoding="utf-8") as jsonFile:
+        WORD_NORMALCY = json.load(jsonFile)
 
 def get_prev_possibilities(results: List[WordResult], words: List[str]) -> TreeNode:
     # print(f"len words: {len(words)}, len results: {len(results)}, looking at word {words[-1]}")  # TODO
     level = len(words)  # TODO off by 1?
+    # print(f"words: {words}, results[-level-1]: {results[-level-1]}")
 
     node = TreeNode(words[-1])
 
-    if len(words) == 3:  #len(results) if on first guess
+    if len(words) == len(results):  #len(results) if on first guess
         # print("returning node")
         return node
 
@@ -20,17 +34,17 @@ def get_prev_possibilities(results: List[WordResult], words: List[str]) -> TreeN
     checks: List[List[LetterPossibility]] = [[], [], [], [], []]
     correct_word = words[0]
     index = 0
-    curr_green = {i: correct_word[i] for i in range(0, 5) if results[-level - 1][i] == TileResult.GREEN}
+    curr_green = {i: correct_word[i] for i in range(0, 5) if results[-level - 1][i].equals(TileResult.GREEN)}
     gets_green_next = {i: correct_word[i] for i in range(0, 5) if
-                       results[-level][i] == TileResult.GREEN and results[-level - 1][i] != TileResult.GREEN}
+                       results[-level][i].equals(TileResult.GREEN) and not results[-level - 1][i].equals(TileResult.GREEN)}
     yellows_in_next = {i: words[-1][i] for i in range(0, 5) if
-                       results[-level][i] == TileResult.YELLOW}
+                       results[-level][i].equals(TileResult.YELLOW)}
     for tile_result in results[-level - 1]:
         correct_char = correct_word[index]
         # TODO get python 3.10 and change to match statement
-        if tile_result == TileResult.GREEN:
+        if tile_result.equals(TileResult.GREEN):
             checks[index] = [LetterPossibility(correct_char)]
-        elif tile_result == TileResult.YELLOW:
+        elif tile_result.equals(TileResult.YELLOW):
             # print("yellow")  # TODO
             # has to be in either gets_green_next or yellows_in_next
             # cannot be the letter in this index in any subsequent guesses (only way that would be possible is if green)
@@ -70,35 +84,44 @@ def get_prev_possibilities(results: List[WordResult], words: List[str]) -> TreeN
                 else:  # not in correct word
                     checks[index].append(LetterPossibility(letter))
 
-            if "norah" in words:
-                print(f"word: {words[-1]}, impossible_letters: {impossible_letters}, checks: {checks[index]}")
+            #if "norah" in words:
+                #print(f"word: {words[-1]}, impossible_letters: {impossible_letters}, checks: {checks[index]}")
         index += 1
 
-    for check in checks:
-        print(check)
+    #for check in checks:
+        #print(check)
     """ FINDING WORDS """
 
     # find word
     with open(WORDLIST_PATH) as wordlist_file:
         for line in wordlist_file:
             curr_word = line.strip()
-            if check_word_against_possibilities(curr_word, results[-level-1], checks):
-                node.branches.append(get_prev_possibilities(results, words + [curr_word]))
+            if (curr_word not in WORD_NORMALCY or WORD_NORMALCY[curr_word]) and check_word_against_possibilities(curr_word, results[-level-1], checks):
+                new_branch = get_prev_possibilities(results, words + [curr_word])
+                # if curr_word == "mobie":
+                    # print(WORD_NORMALCY)
+                    # print( f"len(words): {len(words)}, len(results): {len(results)}, len(new_branch.branches): {len(new_branch.branches)}, curr_word in WORD_NORMALCY: {curr_word in WORD_NORMALCY}")
+                if len(words) == len(results) - 1 or len(new_branch.branches) > 0:
+
+                    node.branches.append(new_branch)
                 # TODO check length of branches of new node and remove if they dead end too soon
     return node
 
 
-copy_paste_string = "⬛⬛⬛⬛⬛\n" \
-                    "🟨🟩⬛⬛🟩\n" \
-                    "🟩🟩🟩🟩🟩"
-correct_word = "month"
+if __name__ == "__main__":
+    copy_paste_string = "⬛⬛⬛⬛⬛\n" \
+                        "🟨🟩⬛⬛🟩\n" \
+                        "🟩🟩🟩🟩🟩"
+    correct_word = "month"
 
-patterns = [WordResult(line) for line in copy_paste_string.split("\n")]
+    patterns = [WordResult(line) for line in copy_paste_string.split("\n")]
+    print(patterns)
+    print("loading...")
+    head_node = get_prev_possibilities(patterns, [correct_word])
+    head_node.print()
 
-print("loading...")
-head_node = get_prev_possibilities(patterns, [correct_word])
-head_node.print()
+    print("Done!")
 
-print("Done!")
+    # TODO if letter is guessed as black on one level, it considers guessing that letter as valid on previous level
 
-# TODO if letter is guessed as black on one level, it considers guessing that letter as valid on previous level
+load_word_norms()

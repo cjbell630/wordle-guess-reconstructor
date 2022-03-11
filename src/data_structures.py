@@ -5,7 +5,8 @@ from os.path import join as path_join, dirname as path_dirname
 
 ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 
-WORDLIST_PATH = path_join(path_dirname(__file__), "../res/5letter_full.txt")
+WORDLIST_PATH = path_join(path_dirname(__file__), "../res/wordle_nyt_full.txt")
+WORD_NORMALCY = {}
 
 
 class TileResult(Enum):
@@ -14,7 +15,10 @@ class TileResult(Enum):
     GREEN = 1
 
     def to_string(self):
-        return "⬛" if self == TileResult.BLACK else "🟨" if self == TileResult.YELLOW else "🟩"
+        return "⬛" if self.equals(TileResult.BLACK) else "🟨" if self.equals(TileResult.YELLOW) else "🟩"
+
+    def equals(self, tr):
+        return self.value == tr.value
 
 
 class WordResult(List[TileResult]):
@@ -48,7 +52,7 @@ class LetterPossibility:
                 matched_instances = 0
                 for i in range(0, 5):
                     if word[i] == self.letter and (
-                            (i < index and result[i] == TileResult.YELLOW) or result[i] == TileResult.GREEN
+                            (i < index and result[i].equals(TileResult.YELLOW)) or result[i].equals(TileResult.GREEN)
                     ):
                         matched_instances += 1
                 return (
