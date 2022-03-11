@@ -8,8 +8,10 @@ from src.tree_approach import get_prev_possibilities
 GUESS_FOLDER_PATH = path_join(path_dirname(__file__), "../res/guesses")
 WORD_NORMS_PATH = path_join(path_dirname(__file__), "../res/word_norms.json")
 
+# really good ones: month 11
+
 correct_word = "month"
-attempt_num = 5
+attempt_num = 12
 
 
 def dict_to_json_string(elem):
@@ -58,6 +60,6 @@ if __name__ == "__main__":
 
     load_word_norms()
     print(print_tree_exclude(head_node))
-    # head_node.print()
+    #head_node.print()
 
     print("Done!")

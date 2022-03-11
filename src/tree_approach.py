@@ -97,6 +97,7 @@ def get_prev_possibilities(results: List[WordResult], words: List[str]) -> TreeN
         for line in wordlist_file:
             curr_word = line.strip()
             if (curr_word not in WORD_NORMALCY or WORD_NORMALCY[curr_word]) and check_word_against_possibilities(curr_word, results[-level-1], checks):
+            #if check_word_against_possibilities(curr_word, results[-level-1], checks):
                 new_branch = get_prev_possibilities(results, words + [curr_word])
                 # if curr_word == "mobie":
                     # print(WORD_NORMALCY)
