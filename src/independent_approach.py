@@ -1,40 +1,7 @@
-from dataclasses import dataclass
-from enum import Enum
 from typing import List
 
-from os.path import join as path_join, dirname as path_dirname
 
-ALPHABET = "abcdefghijklmnopqrstuvwxyz"
-
-WORDLIST_PATH = path_join(path_dirname(__file__), "../res/5letter_full.txt")
-
-
-class TileResult(Enum):
-    BLACK = -1
-    YELLOW = 0
-    GREEN = 1
-
-    def to_string(self):
-        return "⬛" if self == TileResult.BLACK else "🟨" if self == TileResult.YELLOW else "🟩"
-
-
-class WordResult(List[TileResult]):
-    def to_string(self):
-        return "".join(tile.to_string() for tile in self)
-
-    def __init__(self, string: str = ""):
-        super().__init__()
-        for char in string:
-            self.append(TileResult.GREEN if char == "🟩" else TileResult.YELLOW if char == "🟨" else TileResult.BLACK)
-
-
-@dataclass
-class LetterPossibility:
-    letter: str  # length 1
-    if_gt_present: str = None  # length 1
-    if_lt_present: str = None  # length 1
-    present_count: int = 0
-    # present checks all to the left, plus greens to the right
+from data_structures import TileResult, WordResult, LetterPossibility, ALPHABET, WORDLIST_PATH
 
 
 """
@@ -120,15 +87,14 @@ def words_for_patterns(patterns: List[WordResult], correct_word: str):
                     words[i].append(line)
     return words
 
+
 print(get_pattern_for_guess("claps", "lapse").to_string())
 print(get_pattern_for_guess("phase", "lapse").to_string())
 
-copy_paste_string = "🟨⬛🟨⬛⬛\n" \
-                    "⬛⬛🟨🟨🟨\n" \
-                    "🟩🟨🟨🟨🟨\n" \
+copy_paste_string = "⬛⬛⬛⬛⬛\n" \
+                    "🟨🟩⬛⬛🟩\n" \
                     "🟩🟩🟩🟩🟩"
-correct_word = "lapse"
-
+correct_word = "month"
 
 patterns = [WordResult(line) for line in copy_paste_string.split("\n")]
 words = words_for_patterns(patterns, correct_word)
