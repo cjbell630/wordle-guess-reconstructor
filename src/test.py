@@ -8,10 +8,10 @@ from src.tree_approach import get_prev_possibilities
 GUESS_FOLDER_PATH = path_join(path_dirname(__file__), "../res/guesses")
 WORD_NORMS_PATH = path_join(path_dirname(__file__), "../res/word_norms.json")
 
-# really good ones: month 11
+# really good ones: month 11, caulk 1, today 1, today 2, today 6, today 7
 
-correct_word = "month"
-attempt_num = 12
+correct_word = "today"
+attempt_num = 3
 
 
 def dict_to_json_string(elem):
@@ -38,14 +38,15 @@ def save_word_norms():
         file.write(dict_to_json_string(src.data_structures.WORD_NORMALCY))
 
 
-def print_tree_exclude(top_node: TreeNode, level: int = 0):
-    string = f"{'--- ' * level}{top_node.data}:\n"
+def print_tree_exclude(top_node: TreeNode, level: int = 0, only_one_in_level:bool=False):
+    string = f"{'--- ' * level}{top_node.data}: {'✅' if only_one_in_level else ''}\n"
+    next_is_only = len(top_node.branches) == 1
     for node in top_node.branches:
         if node.data not in src.data_structures.WORD_NORMALCY.keys():
             src.data_structures.WORD_NORMALCY[node.data] = input(f"is \"{node.data}\" a normal word? (y/n) ") == "y"
             save_word_norms()
         if src.data_structures.WORD_NORMALCY[node.data]:
-            string += print_tree_exclude(node, level + 1)
+            string += print_tree_exclude(node, level + 1, only_one_in_level=next_is_only)
     return string
 
 
@@ -59,7 +60,7 @@ if __name__ == "__main__":
     head_node = get_prev_possibilities(patterns, [correct_word])
 
     load_word_norms()
-    print(print_tree_exclude(head_node))
-    #head_node.print()
+    print(print_tree_exclude(head_node, only_one_in_level=True))
+    # head_node.print()
 
     print("Done!")
